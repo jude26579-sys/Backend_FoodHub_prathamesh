@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodHub - Authorization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #FF6B35;
+            margin-bottom: 10px;
+        }
+
+        .login-title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .login-subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="email"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input[type="email"]:focus,
+        input[type="password"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #FF6B35;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+        }
+
+        .role-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .role-option {
+            position: relative;
+        }
+
+        .role-option input[type="radio"] {
+            display: none;
+        }
+
+        .role-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            text-align: center;
+            transition: all 0.3s;
+            font-size: 13px;
+        }
+
+        .role-option input[type="radio"]:checked + .role-label {
+            border-color: #FF6B35;
+            background-color: rgba(255, 107, 53, 0.1);
+            color: #FF6B35;
+        }
+
+        .role-label:hover {
+            border-color: #FF6B35;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 107, 53, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .info-message {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            color: #004085;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #FF6B35;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .form-footer a {
+            color: #FF6B35;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="logo">🍴 FoodHub</div>
+            <div class="login-title">Authorization Required</div>
+            <div class="login-subtitle">Please sign in to continue</div>
+        </div>
+
+        <div class="info-message">
+            ℹ️ This page authenticates your credentials with the authorization server before granting access.
+        </div>
+
+        <form id="loginForm" method="POST">
+            <div class="form-group">
+                <label for="username">Email Address</label>
+                <input 
+                    type="email" 
+                    id="username" 
+                    name="username" 
+                    placeholder="Enter your email" 
+                    required 
+                    autocomplete="email"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    placeholder="Enter your password" 
+                    required 
+                    autocomplete="current-password"
+                >
+            </div>
+
+            <div class="form-group">
+                <label>User Type</label>
+                <div class="role-selector">
+                    <div class="role-option">
+                        <input 
+                            type="radio" 
+                            id="customer" 
+                            name="userType" 
+                            value="customer" 
+                            checked
+                        >
+                        <label for="customer" class="role-label">👤 Customer</label>
+                    </div>
+                    <div class="role-option">
+                        <input 
+                            type="radio" 
+                            id="vendor" 
+                            name="userType" 
+                            value="vendor"
+                        >
+                        <label for="vendor" class="role-label">🏪 Vendor</label>
+                    </div>
+                    <div class="role-option">
+                        <input 
+                            type="radio" 
+                            id="admin" 
+                            name="admin" 
+                            value="admin"
+                        >
+                        <label for="admin" class="role-label">👨‍💼 Admin</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+
+            <button type="submit" id="loginButton">Sign In</button>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <div>Authenticating...</div>
+            </div>
+        </form>
+
+        <div class="form-footer">
+            Don't have an account? 
+            <a href="http://localhost:8084/register" target="_blank">Create one now</a>
+        </div>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const loading = document.getElementById('loading');
+        const loginButton = document.getElementById('loginButton');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const userType = document.querySelector('input[name="userType"]:checked')?.value || 'customer';
+
+            // Show loading state
+            loginButton.disabled = true;
+            loading.classList.add('show');
+            errorMessage.classList.remove('show');
+
+            try {
+                console.log('AuthServer Login: Sending credentials for', email, 'as', userType);
+                
+                // Call the AuthServer login endpoint based on user type
+                const endpoint = `http://localhost:9001/auth/login/${userType}`;
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include', // Include cookies for session
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                });
+
+                console.log('AuthServer response status:', response.status);
+                const data = await response.json();
+                console.log('AuthServer response data:', data);
+
+                if (response.ok && data.status === 'success') {
+                    console.log('Authentication successful, redirecting to OAuth2 authorize');
+                    // Redirect to OAuth2 authorize endpoint
+                    // The session from the login is now established, so user is authenticated
+                    window.location.href = data.authorizeUrl || 
+                        'http://localhost:9001/oauth2/authorize?client_id=web-client&response_type=code&scope=openid%20profile&redirect_uri=http://localhost:8084/auth/callback&state=xyz';
+                } else {
+                    throw new Error(data.error || 'Authentication failed');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorMessage.textContent = error.message || 'Login failed. Please try again.';
+                errorMessage.classList.add('show');
+                loginButton.disabled = false;
+                loading.classList.remove('show');
+            }
+        });
+
+        // Update the "admin" radio button to use correct name attribute
+        const adminRadio = document.getElementById('admin');
+        if (adminRadio) {
+            adminRadio.name = 'userType';
+        }
+
+        // Test credentials info
+        console.log('🔐 AuthServer Login Page Loaded');
+        console.log('Test with: demo@customer.com / demo123 (Customer)');
+        console.log('Or register at: http://localhost:8084/register');
+    </script>
+</body>
+</html>
