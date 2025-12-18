@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.cts.dtos.OrdersDto;
+import com.cts.dtos.OrderStatusUpdateRequest;
 import com.cts.entities.OrdersRequest;
 import com.cts.service.OrderService;
 import org.slf4j.Logger;
@@ -309,6 +310,65 @@ public class OrderController {
         }
     }
 
+    // ==================== HELPER METHODS ====================
+    
+    /**
+     * PUT /api/orders/{orderId}/vendor-status
+     * Update order status by vendor (ACCEPTED or READY)
+     * Sends notification to customer via Kafka
+     * 
+     * @param orderId Order ID
+     * @param request OrderStatusUpdateRequest with status (ACCEPTED or READY)
+     * @return Updated OrdersDto
+     */
+    @PreAuthorize("hasRole('VENDOR')")
+    @PutMapping("/{orderId}/vendor-status")
+    public ResponseEntity<?> updateOrderStatusByVendor(
+            @PathVariable("orderId") Long orderId,
+            @RequestBody OrderStatusUpdateRequest request) {
+        
+        logger.info("🏪 VENDOR updating order {} to status: {}", orderId, request.getStatus());
+        
+        try {
+            // Validate status
+            if (request.getStatus() == null || request.getStatus().trim().isEmpty()) {
+                logger.error("❌ Status is null or empty");
+                return ResponseEntity.badRequest().body(
+                    createErrorResponse("VALIDATION_ERROR", "Status cannot be null or empty")
+                );
+            }
+            
+            String status = request.getStatus().toUpperCase();
+            
+            // Validate allowed statuses
+            if (!status.equals("ACCEPTED") && !status.equals("READY")) {
+                logger.error("❌ Invalid status: {}", status);
+                return ResponseEntity.badRequest().body(
+                    createErrorResponse("INVALID_STATUS", "Status must be ACCEPTED or READY")
+                );
+            }
+            
+            // Update order status and send notification to customer
+            OrdersDto updated = orderService.updateOrderStatusByVendor(orderId, status);
+            
+            logger.info("✅ Order {} updated to {} and notification sent to customer", orderId, status);
+            
+            return ResponseEntity.ok(updated);
+            
+        } catch (IllegalArgumentException ex) {
+            logger.error("❌ Error: {}", ex.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                createErrorResponse("NOT_FOUND", ex.getMessage())
+            );
+            
+        } catch (Exception ex) {
+            logger.error("❌ Error updating order status: {}", ex.getMessage(), ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                createErrorResponse("INTERNAL_ERROR", "Error updating order status: " + ex.getMessage())
+            );
+        }
+    }
+    
     // ==================== HELPER METHODS ====================
     
     /**

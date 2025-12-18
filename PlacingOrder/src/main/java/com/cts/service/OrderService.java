@@ -1,3 +1,4 @@
+
 package com.cts.service;
 
 import java.util.List;
@@ -33,6 +34,16 @@ public interface OrderService {
      * Legacy update - fetches payment status from Payment Service
      */
     void updateOrderStatus(Long orderId);
+    
+    /**
+     * Update order status from vendor (ACCEPTED, READY)
+     * Sends notification to customer via Kafka
+     * 
+     * @param orderId Order ID
+     * @param newStatus New status (ACCEPTED or READY)
+     * @return Updated OrdersDto
+     */
+    OrdersDto updateOrderStatusByVendor(Long orderId, String newStatus);
     
     void deleteOrder(Long orderId);
 }

@@ -1,0 +1,14 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run NotificationClient Tests",
+			"type": "shell",
+			"command": "mvn test -Dtest=com.cts.clients.NotificationClientTest",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		}
+	]
+}
